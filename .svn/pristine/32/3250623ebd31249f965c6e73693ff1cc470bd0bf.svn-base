@@ -1,0 +1,83 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package beans;
+
+/**
+ *
+ * @author giorgio
+ */
+public class Group
+{
+    private Integer groupID;
+    private Integer groupAdminID;
+    private String groupName;
+    private String groupDataCreation;
+
+    /**
+     * @return the groupID
+     */
+    public Integer getGroupID()
+    {
+        return groupID;
+    }
+
+    /**
+     * @param groupID the groupID to set
+     */
+    public void setGroupID(Integer groupID)
+    {
+        this.groupID = groupID;
+    }
+
+    /**
+     * @return the groupAdminID
+     */
+    public Integer getGroupAdminID()
+    {
+        return groupAdminID;
+    }
+
+    /**
+     * @param groupAdminID the groupAdminID to set
+     */
+    public void setGroupAdminID(Integer groupAdminID)
+    {
+        this.groupAdminID = groupAdminID;
+    }
+
+    /**
+     * @return the groupName
+     */
+    public String getGroupName()
+    {
+        return groupName;
+    }
+
+    /**
+     * @param groupName the groupName to set
+     */
+    public void setGroupName(String groupName)
+    {
+        this.groupName = groupName;
+    }
+
+    /**
+     * @return the groupDataCreation
+     */
+    public String getGroupDataCreation()
+    {
+        return groupDataCreation;
+    }
+
+    /**
+     * @param groupDataCreation the groupDataCreation to set
+     */
+    public void setGroupDataCreation(String groupDataCreation)
+    {
+        this.groupDataCreation = groupDataCreation;
+    }
+}

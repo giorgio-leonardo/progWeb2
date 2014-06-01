@@ -1,0 +1,97 @@
+<%-- 
+    Document   : registrationPage
+    Created on : 25-dic-2013, 10.30.08
+    Author     : giorgio
+--%>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <%@ include file="/head.html" %>
+    </head>
+    
+    <body>
+        
+        <h3 align="center"><span class="label label-info">Registrazione</span></h3>
+        
+        <br>
+        
+        <form action="ControlServlet" method="post" enctype="multipart/form-data">
+
+            <input type="hidden" name="op" value="registrationForm">
+            <table>
+                <tr>
+                    <td>
+                        <h5>Nome utente</h5>
+                    </td>
+                    <td>
+                        <input type="text" name="userName" class="form-control">
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td>
+                        <h5>Password</h5>
+                    </td>
+                    <td>
+                        <input type="password" name="userPwd" class="form-control">
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td>
+                        <h5>Conferma password</h5>
+                    </td>
+                    <td>
+                        <input type="password" name="userPwdConf" class="form-control">
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td>
+                        <h5>Email</h5>
+                    </td>
+                    <td>
+                        <input type="text" name="userEmail" class="form-control">
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td>
+                        <h5>Conferma email</h5>
+                    </td>
+                    <td>
+                        <input type="text" name="userEmailConf" class="form-control">
+                    </td>
+                    
+                </tr>
+                <tr>
+                    <td>
+                        <h5>Avatar</h5>
+                    </td>
+                    <td>
+                        <input type="file" name="userFileAvatar" accept = "image/png" class="form-control">
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><br></td>
+                </tr>
+                
+                <tr>
+                    <td>
+                        <button type="submit" class="btn btn-default" name="btn" value="regConferma">Conferma</button>
+                    </td>
+                    <td>
+                        <button type="submit" class="btn btn-default" name="btn" value="regAnnulla">Annulla</button>
+                    </td>
+                </tr>
+                
+            </table>
+        </form>
+        
+        <%@ include file="/foot.html" %>
+    </body>
+</html>

@@ -1,0 +1,246 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package servlets;
+
+import beans.Group;
+import beans.User;
+import com.oreilly.servlet.MultipartRequest;
+import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
+import database.DbManager;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Enumeration;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import support.Utils;
+
+/**
+ *
+ * @author giorgio
+ */
+
+
+public class ControlServlet extends HttpServlet
+{
+    
+    private DbManager manager;
+    private MultipartRequest multi;
+    private String avatarsTmp;
+    private String avatarsTmpDir;
+    private String groupsDir;
+    
+    public void init(ServletConfig config) throws ServletException
+    {
+        super.init(config);
+    
+        this.avatarsTmp = config.getInitParameter("avatarsTmp");
+        if (avatarsTmp == null)
+        {
+            throw new ServletException("Please supply avatarsTmp parameter");
+        }
+        
+        this.groupsDir = config.getInitParameter("groupsDir");
+        if (this.groupsDir == null)
+        {
+            throw new ServletException("Please supply groupsDir parameter");
+        }
+
+        
+        this.manager = (DbManager)super.getServletContext().getAttribute("dbmanager");
+    }
+    
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+        String op = request.getParameter("op");
+        if (op == null)
+        {
+            avatarsTmpDir = "";
+            String appPath = getServletContext().getRealPath("/WEB-INF");
+            avatarsTmpDir = appPath + "/" + avatarsTmp + "/";
+
+            multi = new MultipartRequest(request, avatarsTmpDir, 1024*1024*10, "UTF-8", new DefaultFileRenamePolicy());
+            op = multi.getParameter("op");
+        }
+        
+        switch(op)
+        {
+            case "landing":
+                {
+                    String btn = request.getParameter("btn");
+                    if (btn.equals("logout"))
+                    {
+                        forward(request, response, "/Logout");
+                    }
+                    if (btn.equals("creaGruppo"))
+                    {
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/LoadUsers");
+                    }
+                    if (btn.equals("moderatorPage"))
+                    {
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/ModeratorPage");
+                    }
+                    if (btn.equals("gruppi"))
+                    {
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/GroupsPage");
+                    }
+                }
+                break;
+            case "loginError":
+                {
+                    String btn = request.getParameter("btn");
+                    if(btn.equals("leAnnulla"))
+                    {
+                        forward(request, response, "/index.html");
+                    }
+                    else if (btn.equals("leInvia"))
+                    {
+                        String userName = request.getParameter("userName");
+                        request.setAttribute("userName", userName);
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/SendMailRecoveryPwd");
+                    }
+                }
+                break;
+            case "registrationForm":
+                {
+                    String btn = multi.getParameter("btn");
+                    if(btn.equals("regConferma"))
+                    {
+                        request.setAttribute("multi", multi);
+                        request.setAttribute("manager", manager);
+                        request.setAttribute("avPath", avatarsTmpDir);
+                        forward(request, response, "/SaveUser");
+                    }
+                    else
+                        forward(request, response, "/index.html");
+                }
+                break;
+            case "createGroup":
+                {
+                    String btn = request.getParameter("btn");
+                    if (btn.equals("cgrAnnulla"))
+                    {
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/LandingPage");
+                    }
+                    else
+                    {
+                        request.setAttribute("manager", manager);
+                        request.setAttribute("groupsDir", groupsDir);
+                        forward(request, response, "/CreateGroup");
+                    }
+                }
+                break;
+            case "acceptInvitation":
+                {
+                    String btn = request.getParameter("btn");
+                    if (btn.equals("Conferma"))
+                    {
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/AcceptInvitations");
+                    }
+                    if (btn.endsWith("Annulla"))
+                    {
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/LandingPage");
+                    }
+                }
+                break;
+            case "groupsTablePage":
+                request.setAttribute("manager", manager);
+                forward(request, response, "/LandingPage");
+                break;
+            case "groupPage":
+                {
+                    String btn = request.getParameter("btn");
+
+                    if (btn.equals("indietro"))
+                    {
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/GroupsPage");
+                    }
+                }
+                break;
+            case "modifyGroupJSP":
+                {
+                    String btn = request.getParameter("btn");
+
+                    if (btn.equals("annulla"))
+                    {
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/GroupsPage");
+                    }
+                    if (btn.equals("conferma"))
+                    {
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/ModifyGroup");
+                    }
+                }
+                break;
+        }
+    }
+    
+    private void forward(HttpServletRequest request, HttpServletResponse response, String page) throws ServletException, IOException
+    {
+        ServletContext sc = getServletContext();
+        RequestDispatcher rd = sc.getRequestDispatcher(page);
+        rd.forward(request,response);
+    }
+    
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        processRequest(request, response);
+    }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo()
+    {
+        return "Short description";
+    }// </editor-fold>
+
+}
+

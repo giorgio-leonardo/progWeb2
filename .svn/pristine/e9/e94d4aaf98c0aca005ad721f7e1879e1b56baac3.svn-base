@@ -1,0 +1,195 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package db;
+
+import beans.User;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import support.Utils;
+
+/**
+ *
+ * @author giorgio
+ */
+public class DbManager implements Serializable
+{
+    private transient Connection conn;
+    
+    public DbManager(String dbUrl) throws SQLException
+    {
+        try
+        {
+            Class.forName("org.apache.derby.jdbc.ClientDriver", true, getClass().getClassLoader());
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e.toString(), e);
+        }
+        
+        Connection conn = DriverManager.getConnection(dbUrl);
+        
+        this.conn = conn;
+    }
+    
+    public static void shutdown()
+    {
+        try
+        {
+            DriverManager.getConnection("jdbc:derby:;shutdown=true");
+        }
+        catch(SQLException e)
+        {
+            Utils.toLog(DbManager.class.getName() + ": " + e.getMessage(), "e");
+        }
+    }
+    
+    
+    public synchronized User authenticate(String userName, String userPwd) throws SQLException
+    {
+        User user = null;
+        PreparedStatement stm = conn.prepareStatement
+        (
+            "SELECT * FROM users WHERE userName = ? AND userPwd = ?"
+        );
+        
+        try
+        {
+            stm.setString(1, userName);
+            stm.setString(2, userPwd);
+            
+            ResultSet rs = stm.executeQuery();
+            try
+            {
+                if(rs.next())
+                {
+                    user = new User();
+                    user.setUserID(rs.getInt("userID"));
+                    user.setUserName(rs.getString("userName"));
+                    user.setUserPwd(rs.getString("userPwd"));
+                    user.setUserEmail(rs.getString("userEmail"));
+                    user.setUserAvatar(rs.getString("userAvatar"));
+                    user.setUserMod(rs.getBoolean("userMod"));
+
+                    String d = Utils.timeStampToString(rs.getTimestamp("userLastLogin"));
+                    user.setUserLastLogin(d);
+                }
+            }
+            finally
+            {
+                rs.close();
+            }
+        }
+        finally
+        {
+            stm.close();
+        }    
+        
+        return user;
+    }
+    
+    public synchronized String getEmailFromUserName(String userName) throws SQLException
+    {
+        String ret = null;
+        
+        PreparedStatement stm = conn.prepareStatement
+        (
+            "SELECT userEmail FROM users WHERE userName = ?"
+        );
+        
+        stm.setString(1, userName);
+        
+        try
+        {
+            ResultSet rs = stm.executeQuery();
+            try
+            {
+                if(rs.next())
+                {
+                    ret = rs.getString("userEmail");
+                }
+            }
+            finally
+            {
+                rs.close();
+            }
+        }
+        finally
+        {
+            stm.close();
+        }
+        
+        return ret;
+    }
+    
+    public synchronized String getPwdFromUserName(String userName) throws SQLException
+    {
+        String ret = null;
+        
+        PreparedStatement stm = conn.prepareStatement
+        (
+            "SELECT userPwd FROM users WHERE userName = ?"
+        );
+        
+        stm.setString(1, userName);
+        
+        try
+        {
+            ResultSet rs = stm.executeQuery();
+            try
+            {
+                if(rs.next())
+                {
+                    ret = rs.getString("userPwd");
+                }
+            }
+            finally
+            {
+                rs.close();
+            }
+        }
+        finally
+        {
+            stm.close();
+        }
+        
+        return ret;
+    }
+    
+    public synchronized void updateLastAccessTime(Integer userID, long cDate) throws SQLException
+    {
+        java.util.Date jDate = new Date(cDate);
+        java.sql.Timestamp sDate = new java.sql.Timestamp(jDate.getTime());
+        
+        PreparedStatement stm;
+        stm = conn.prepareStatement
+        (
+            "UPDATE users SET userLastLogin = ?"
+        );
+
+        stm.setTimestamp(1, sDate);
+
+        try
+        {
+            Boolean r = stm.execute();
+        }
+        finally
+        {
+            stm.close();
+        }
+    }
+}

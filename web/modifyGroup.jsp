@@ -1,0 +1,114 @@
+<%-- 
+    Document   : modifyGroup
+    Created on : 29-dic-2013, 11.32.40
+    Author     : giorgio
+--%>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<jsp:useBean id = "group" class = "beans.Group" scope = "session"/>
+<jsp:useBean id = "user" class = "beans.User" scope = "session" />
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <%@ include file="/head.html" %>
+        <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+        <link rel="stylesheet" href="<c:url value="css/jquery.dataTables.css"/>"/>
+        <script type="text/javascript" src='<c:url value="js/jquery.js"/>'></script>
+        <script type="text/javascript" src='<c:url value="js/jquery.dataTables.min.js"/>'></script>
+        <script src="dist/js/bootstrap.min.js"></script>
+        
+    </head>
+    <body>
+        <%@ include file="/pageFormat/header.html" %>
+        <%@ include file="/pageFormat/openGrid.html" %>
+        
+        <script>
+            $(document).ready
+            (
+                function()
+                {
+                    $("#usersTable").dataTable();
+                }
+            );
+        </script>
+        
+        <h3 align="center"><span class="label label-info">Modifica del gruppo: <jsp:getProperty name = "group" property= "groupName" /></span></h3>
+        <form action = "ControlServlet" method="post">
+        <div class="row" style="background-color: #c0c0c0; border: none">
+            <div class="col-md-10" style="background-color: #c0c0c0; border: none">
+                <input type="hidden" name="op" value="modifyGroupJSP">
+                <input type="hidden" name="groupOldName" value="${group.groupName}">
+                <input type="hidden" name="groupID" value=${group.groupID}>
+                <div class="input-group">
+                    <span class="input-group-addon">Nome del gruppo</span>
+                    <input type="text" class="form-control" placeholder="nome gruppo" name="groupName" value = ${group.groupName}>
+                    <c:choose>
+                        <c:when test = "${group.groupIsOpen == true}" >
+                            <span class="input-group-addon">Gruppo aperto <input type="checkbox" name="groupIsOpen" checked></span>
+                        </c:when>
+                        <c:when test = "${group.groupIsOpen == false}" >
+                            <span class="input-group-addon">Gruppo aperto <input type="checkbox" name="groupIsOpen"></span>
+                        </c:when>
+                    </c:choose>
+                    <c:choose>
+                        <c:when test = "${group.groupIsPrivate == true}" >
+                            <span class="input-group-addon">Gruppo privato <input type="checkbox" name="groupIsPrivate" checked></span>
+                        </c:when>
+                        <c:when test = "${group.groupIsPrivate == false}" >
+                            <span class="input-group-addon">Gruppo privato <input type="checkbox" name="groupIsPrivate"></span>
+                        </c:when>
+                    </c:choose>
+                </div>
+                <br><br><br>
+                <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>
+                            Nome utente
+                        </th>
+                        <th>
+                            Invita
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <c:forEach var = "u" items = "${usersInGroup}">
+                        <tr>
+                            <td>
+                                <c:out value = "${u.userName}" />
+                            </td>    
+                            <td>
+                                <input type="checkbox" disabled="disabled" checked="checked">
+                            </td>    
+                        </tr>
+                    </c:forEach>
+                    <c:forEach var = "u" items = "${usersNotInGroup}">
+                        <tr>
+                            <td>
+                                <c:out value = "${u.userName}" />
+                            </td>    
+                            <td>
+                                <input type="checkbox" name="chk" value = "${u.userName}">
+                            </td>    
+                        </tr>
+                    </c:forEach>
+                </tbody>
+                </table>
+            </div>
+            
+            <div class="col-md-2" style="background-color: #c0c0c0; border: none">
+                <div class="btn-group-vertical">
+                    <%request.setAttribute("group", group); %>
+                    <button type="submit" class="btn btn-default" name="btn" value="conferma">Conferma</button>
+                    <button type="submit" class="btn btn-default" name="btn" value="annulla">Annulla</button>
+                </div>
+            </div>
+        </div>
+        </form>
+        
+        <%@ include file="/pageFormat/closeGrid.html" %>
+        <%@ include file="/pageFormat/footer.html" %>
+    </body>
+</html>

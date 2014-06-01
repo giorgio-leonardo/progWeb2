@@ -1,0 +1,26 @@
+<%-- 
+    Document   : modifyGroup
+    Created on : 29-dic-2013, 11.32.40
+    Author     : giorgio
+--%>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<jsp:useBean id = "group" class = "beans.Group" scope = "request"/>
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <%@ include file="/head.html" %>
+        <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+        <link rel="stylesheet" href="<c:url value="css/jquery.dataTables.css"/>"/>
+        <script type="text/javascript" src='<c:url value="js/jquery.js"/>'></script>
+        <script type="text/javascript" src='<c:url value="js/jquery.dataTables.min.js"/>'></script>
+    </head>
+    <body>
+        <%@ include file="/pageFormat/header.html" %>
+        <%@ include file="/pageFormat/openGrid.html" %>
+        
+        <%@ include file="/pageFormat/closeGrid.html" %>
+        <%@ include file="/pageFormat/footer.html" %>
+    </body>
+</html>

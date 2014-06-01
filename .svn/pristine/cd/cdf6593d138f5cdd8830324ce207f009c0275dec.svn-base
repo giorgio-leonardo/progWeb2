@@ -1,0 +1,205 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package servlets;
+
+import beans.User;
+import com.oreilly.servlet.MultipartRequest;
+import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
+import db.DbManager;
+import java.io.IOException;
+import java.sql.SQLException;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.swing.JOptionPane;
+import support.Utils;
+
+/**
+ *
+ * @author giorgio
+ */
+
+
+public class ControlServlet extends HttpServlet
+{
+    
+    private DbManager manager;
+    private MultipartRequest multi;
+    private String avatarsTmp;
+    private String avatarsTmpDir;
+    private String groupsDir;
+    
+     public void init(ServletConfig config) throws ServletException
+    {
+        super.init(config);
+    
+        this.avatarsTmp = config.getInitParameter("avatarsTmp");
+        if (avatarsTmp == null)
+        {
+            throw new ServletException("Please supply avatarsTmp parameter");
+        }
+        
+        this.groupsDir = config.getInitParameter("groupsDir");
+        if (this.groupsDir == null)
+        {
+            throw new ServletException("Please supply groupsDir parameter");
+        }
+
+        
+        this.manager = (DbManager)super.getServletContext().getAttribute("dbmanager");
+    }
+    
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+        String op = request.getParameter("op");
+        if (op == null)
+        {
+            avatarsTmpDir = "";
+            String appPath = getServletContext().getRealPath("/WEB-INF");
+            avatarsTmpDir = appPath + "/" + avatarsTmp + "/";
+
+            multi = new MultipartRequest(request, avatarsTmpDir, 1024*1024*10, "UTF-8", new DefaultFileRenamePolicy());
+            op = multi.getParameter("op");
+        }
+        switch(op)
+        {
+            case "login":
+                {
+                    String btn = request.getParameter("btn");
+                    if(btn.equals("login"))
+                    {
+                        String un;
+                        String up;
+                        un = request.getParameter("userName");
+                        up = request.getParameter("userPwd");
+                        try
+                        {
+                            User u = manager.authenticate(un, up);
+                            if (u == null)
+                            {
+                                forward(request, response, "/loginError.jsp");
+                            }
+                            else
+                            {
+                                HttpSession session = request.getSession(true);
+                                manager.updateLastAccessTime(u.getUserID(), session.getCreationTime());
+                                session.setAttribute("user", u);
+                                forward(request, response, "/landingPage.jsp");
+                            }
+                        }
+                        catch (SQLException ex)
+                        {
+                            Utils.toLog(ex.getLocalizedMessage(), "e");
+                        }
+                    }
+                    else
+                    {
+                        forward(request, response, "/registrationPage.jsp");
+                    }
+                }
+                break;
+            case "landing":
+                {
+                    String btn = request.getParameter("btn");
+                    if (btn.equals("logout"))
+                    {
+                        HttpSession session = request.getSession();
+                        session.removeAttribute("user");
+                        session.invalidate();
+                        forward(request, response, "/index.html");
+                    }
+                    if (btn.equals("creaGruppo"))
+                    {
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/LoadUsers");
+                    }
+                }
+                break;
+            case "loginError":
+                {
+                    String btn = request.getParameter("btn");
+                    if(btn.equals("leAnnulla"))
+                    {
+                        forward(request, response, "/index.html");
+                    }
+                    else if (btn.equals("leInvia"))
+                    {
+                        String userName = request.getParameter("userName");
+                        request.setAttribute("userName", userName);
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/SendMailRecoveryPwd");
+                    }
+                }
+                break;
+            case "registrationForm":
+                {
+                    String btn = multi.getParameter("btn");
+                    if(btn.equals("regConferma"))
+                    {
+                        request.setAttribute("multi", multi);
+                        request.setAttribute("manager", manager);
+                        request.setAttribute("avPath", avatarsTmpDir);
+                        forward(request, response, "/SaveUser");
+                    }
+                    else
+                        forward(request, response, "/index.html");
+                }
+                break;
+            case "createGroup":
+                {
+                    String btn = request.getParameter("btn");
+                    if (btn.equals("cgrAnnulla"))
+                    {
+                        forward(request, response, "/landingPage.jsp");
+                    }
+                    else
+                    {
+                        request.setAttribute("manager", manager);
+                        request.setAttribute("groupsDir", groupsDir);
+                        forward(request, response, "/CreateGroup");
+                    }
+                }
+                break;
+        }
+      
+    }
+    
+    private void forward(HttpServletRequest request, HttpServletResponse response, String page) throws ServletException, IOException
+    {
+        ServletContext sc = getServletContext();
+        RequestDispatcher rd = sc.getRequestDispatcher(page);
+        rd.forward(request,response);
+    }
+    
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException
+    {
+            processRequest(request, response);
+    }
+
+  
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException
+    {
+            processRequest(request, response);
+    }
+
+    @Override
+    public String getServletInfo()
+    {
+        return "Short description";
+    }
+}
+

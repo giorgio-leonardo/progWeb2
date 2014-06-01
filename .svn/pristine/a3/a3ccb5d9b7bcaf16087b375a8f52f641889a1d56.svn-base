@@ -1,0 +1,130 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package servlets;
+
+import beans.User;
+import db.DbManager;
+import java.io.IOException;
+import java.sql.SQLException;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+/**
+ *
+ * @author giorgio
+ */
+
+
+public class ControlServlet extends HttpServlet
+{
+    
+    private DbManager manager;
+    
+    @Override
+    public void init() throws ServletException
+    {
+        this.manager = (DbManager)super.getServletContext().getAttribute("dbmanager");
+    }
+    
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+        String op = request.getParameter("op");
+        
+        switch(op)
+        {
+            case "login":
+                String un;
+                String up;
+                un = request.getParameter("userName");
+                up = request.getParameter("userPwd");
+                try
+                {
+                    User u = manager.authenticate(un, up);
+                    if (u == null)
+                    {
+                        forward(request, response, "/loginError.jsp");
+                    }
+                    else
+                    {
+                        HttpSession session = request.getSession(true);
+                        manager.updateLastAccessTime(u.getUserID(), session.getCreationTime());
+                        session.setAttribute("user", u);
+                        forward(request, response, "/LandingPage.jsp");
+                    }
+                }
+                catch (SQLException ex)
+                {
+
+                }
+                break;
+            case "landing":
+                {
+                    String btn = request.getParameter("btn");
+                    if(btn.equals("logout"))
+                    {
+                        HttpSession session = request.getSession();
+                        session.removeAttribute("user");
+                        session.invalidate();
+                        forward(request, response, "/index.html");
+                    }
+                }
+                break;
+            case "loginError":
+                {
+                    String btn = request.getParameter("btn");
+                    if(btn.equals("leAnnulla"))
+                    {
+                        forward(request, response, "/index.html");
+                    }
+                    else if (btn.equals("leInvia"))
+                    {
+                        String userName = request.getParameter("userName");
+                        request.setAttribute("userName", userName);
+                        request.setAttribute("manager", manager);
+                        forward(request, response, "/SendMailRecoveryPwd");
+                    }
+                }
+                break;
+        }
+      
+    }
+    
+    private void forward(HttpServletRequest request, HttpServletResponse response, String page) throws ServletException, IOException
+    {
+        ServletContext sc = getServletContext();
+        RequestDispatcher rd = sc.getRequestDispatcher(page);
+        rd.forward(request,response);
+    }
+    
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException
+    {
+            processRequest(request, response);
+    }
+
+  
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException
+    {
+            processRequest(request, response);
+    }
+
+    @Override
+    public String getServletInfo()
+    {
+        return "Short description";
+    }
+}
+

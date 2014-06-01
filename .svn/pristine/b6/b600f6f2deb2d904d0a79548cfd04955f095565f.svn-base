@@ -1,0 +1,15 @@
+<header>
+    <br>
+<div class="row">
+    
+    <div class="col-md-10 col-md-offset-1" style="background-color:#c0c0c0">
+        <div class="page-header">
+               <h1 align="center">
+                   Introduzione alla programmazione per il Web<br>
+                   <small>Secondo progetto</small>
+               </h1>
+        </div>
+    </div>
+    
+</div>
+</header>
